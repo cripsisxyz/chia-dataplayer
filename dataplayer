@@ -1,0 +1,88 @@
+#!/usr/bin/env python
+import logging
+from lib.cli.cli import Cli
+from lib.rpc.xchrpc import RemoteProcedureCall
+from lib.dealermath.dealermath import DealerMath
+from lib.datalayer.handle import Handler
+
+def default_routine(datahandler):
+    if wallet_rpc.check_available_wallets() == False or datalayer_rpc.datalayer_get_owned_stores() == False:
+        exit(1)
+    else:
+        wallet_rpc.check_wallets_synced()
+        if args_datastore.action == "update_key":
+            if args_datastore.codec == "cbor":
+                logging.info(f"Updating Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
+                print(datahandler.cose_push_data(
+                    store_id = args_datastore.id,
+                    store_key = args_datastore.key,
+                    msg_store_value = args_datastore.value,
+                    msg_protected_headers = args_datastore.cbor_ph,
+                    msg_unprotected_headers = args_datastore.cbor_uh,
+                ))
+            elif args_datastore.codec == "hex":
+                logging.info(f"Updating Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
+                print(datahandler.hex_push_data(
+                    store_id = args_datastore.id,
+                    store_key = args_datastore.key,
+                    msg_store_value = args_datastore.value
+                ))
+        elif args_datastore.action == "read_key":
+            if args_datastore.codec == "cbor":
+                logging.info(f"Reading Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
+                print(datahandler.cose_read_data(
+                    store_id = args_datastore.id,
+                    store_key = args_datastore.key
+                ))
+            elif args_datastore.codec == "hex":
+                logging.info(f"Reading Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
+                print(datahandler.hex_read_data(
+                    store_id = args_datastore.id,
+                    store_key = args_datastore.key
+                ))
+        elif args_datastore.action == "list_keys":
+            logging.info(f"Listing Keys: {args_datastore.key} for Store: {args_datastore.id}")
+            print(datahandler.datastore_list_keys(
+                store_id = args_datastore.id
+            ))                
+
+def check_only_routine():
+    wallet_rpc.check_available_wallets()
+    wallet_rpc.check_wallets_synced()
+    wallet_rpc.check_wallet_balance(wallet_id=int(config['rpc_connector']['service_wallets']['chia']))
+    datalayer_rpc.datalayer_get_owned_stores() 
+        
+
+if __name__ == "__main__":
+    global args_global, args_datastore, config
+    args_global, args_datastore = Cli.argparse()
+    config = Cli.load_config_file()
+    Cli.set_app_logger()
+    logging.info(f"Welcome to Chia DataPlayer!")
+    
+    wallet_rpc = RemoteProcedureCall(
+        host=config["rpc_connector"]["host"], 
+        port=int(config["rpc_connector"]["service_ports"]["wallet"]), 
+        private_wallet_cert_path=config["rpc_connector"]["private_wallet_cert_path"], 
+        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"])
+
+    datalayer_rpc = RemoteProcedureCall(
+        host=config["rpc_connector"]["host"], 
+        port=int(config["rpc_connector"]["service_ports"]["datalayer"]), 
+        private_wallet_cert_path=config["rpc_connector"]["private_wallet_cert_path"], 
+        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"])
+
+    datahandler = Handler(datalayer_rpc)
+    
+    logging.info(f"Executing in {args_global.mode} mode")
+
+    if args_global.mode == "check":
+        check_only_routine()
+        logging.info(f"Check mode finished, if you want to operate launch in 'execute' mode. To view the help execute with -h parameter.")
+    elif args_global.mode == "execute":
+        default_routine(datahandler)
+        logging.debug(f"Execute mode finished!")
+    else:
+        logging.error(f"Only check or execute modes can be set")
+        exit(1)
+    exit(0)

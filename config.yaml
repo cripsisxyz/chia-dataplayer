@@ -1,0 +1,13 @@
+---
+rpc_connector:
+  host: "localhost"
+  private_wallet_cert_path: "~/.chia/mainnet/config/ssl/wallet/private_wallet.crt"
+  private_wallet_key_path: "~/.chia/mainnet/config/ssl/wallet/private_wallet.key"
+  service_ports: 
+    wallet: 9256
+    datalayer: 8562
+  service_wallets: 
+    chia: 1
+    datalayer: 2
+
+log_level: "WARNING"
