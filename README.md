@@ -10,6 +10,8 @@ If you found the project useful, please consider a donation to my chia wallet :)
 
 ![walleticon](doc/xch-icon.png) `xch1vt3g694eclvcjmrj8mq83vtgrva9sw0qdz34muxrqjh5y5fzq6vq89n605` | `cripsis.xch`
 
+Presentation page: https://www.cripsis.xyz/chia-dataplayer-trabaja-con-datalayer-como-un-humano/
+
 ## Requirements
 A python3 interpreter and the pipenv library, to create and use virtual environment. 
 
