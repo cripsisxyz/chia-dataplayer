@@ -31,7 +31,7 @@
             "markers": "python_version >= '3.5'",
             "version": "==22.1.0"
         },
-        "cbor2": {
+        "cose2": {
             "hashes": [
                 "sha256:0a3a1b2f6b83ab4ce806df48360cc16d34cd315f17549dbda9fdd371bea04497",
                 "sha256:0e4ae67a697c664b579b87c4ef9d60e26c146b95bff443a9a38abb16f6981ff0",

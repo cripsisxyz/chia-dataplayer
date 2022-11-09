@@ -1,9 +1,9 @@
 # Chia DataPlayer
 
-![hello](doc/dataplayer.png)
+![hello](doc/dataplayer_reduced.png)
 
 ## Description
-Welcome to Chia DataPlayer. Work with Chia DataLayer in a human way and encrypt any data you want with COSE (CBOR Object Signing and Encryption).
+Welcome to Chia DataPlayer. Work with Chia DataLayer in a human way and encrypt any data you want with COSE (COSE Object Signing and Encryption).
 Developed and tested only with the official [chia-blockchain](https://github.com/Chia-Network/chia-blockchain) project.
 
 If you found the project useful, please consider a donation to my chia wallet :) 
@@ -31,12 +31,12 @@ pipenv install
 pipenv shell
 ```
 
-You can also execute xchdealer without entering in the environment, using `pipenv run python xchdealer.py [params]`, example:
+You can also execute dataplayer without entering in the environment, using `pipenv run python dataplayer [params]`, example:
 
 ```
 pipenv run python dataplayer --help
 
-usage: usage: dataplayer datastore [-h] --id ID [--codec {hex,cbor}] --action {update_key,read_key,list_keys} [--key KEY] [--value VALUE] [--cbor-ph CBOR_PH [CBOR_PH ...]] [--cbor-uh CBOR_UH [CBOR_UH ...]]
+usage: usage: dataplayer datastore [-h] --id ID [--codec {hex,cose}] --action {update_key,read_key,list_keys} [--key KEY] [--value VALUE] [--cose-ph COSE_PH [COSE_PH ...]] [--cose-uh COSE_UH [COSE_UH ...]]
 ...
 
 
@@ -64,29 +64,29 @@ log_level: "WARNING" #Log level (DEBUG, INFO, WARNING, ERROR) (default WARNING)
 ```
 
 ### COSE Encode and Encrypt and Decode and Decrypt
-If you want to store or read your encrypted data, you need to set the correct HMAC256 KEY editing the `.env` file, and set COSE_KEY with your desired key. 
+If you want to store or read your encrypted data, you need to set the correct HMAC256 KEY editing the `.env` file, and set COSE_KEY with your desired key. Actually, only MAC0 (An authenticated COSE message with one recipient) is supported
 
 
 ## Arguments
 
 ```bash
-usage: dataplayer datastore [-h] --id ID [--codec {hex,cbor}] --action {update_key,read_key,list_keys} [--key KEY] [--value VALUE]
-                            [--cbor-ph CBOR_PH [CBOR_PH ...]] [--cbor-uh CBOR_UH [CBOR_UH ...]]
+usage: dataplayer datastore [-h] --id ID [--codec {hex,cose}] --action {update_key,read_key,list_keys} [--key KEY] [--value VALUE]
+                            [--cose-ph COSE_PH [COSE_PH ...]] [--cose-uh COSE_UH [COSE_UH ...]]
 
 optional arguments:
   -h, --help            show this help message and exit
   --id ID, -i ID        Datastore ID
-  --codec {hex,cbor}, -c {hex,cbor}
+  --codec {hex,cose}, -c {hex,cose}
                         Encoding type for reading or updating (default hex)
   --action {update_key,read_key,list_keys}, -a {update_key,read_key,list_keys}
                         Action to execute over datastore (required)
   --key KEY, -k KEY     Key of selection (required for read_key, update_key actions)
   --value VALUE, -v VALUE
                         Value for update_key action (optional)
-  --cbor-ph CBOR_PH [CBOR_PH ...], -cph CBOR_PH [CBOR_PH ...]
-                        List of protected headers to store for update_key action and cbor codec (optional). Format: FOO=BAR ABC=XYZ
-  --cbor-uh CBOR_UH [CBOR_UH ...], -cuh CBOR_UH [CBOR_UH ...]
-                        List of unprotected headers to store for update_key action and cbor codec (optional). Format: FOO=BAR ABC=XYZ
+  --cose-ph COSE_PH [COSE_PH ...], -cph COSE_PH [COSE_PH ...]
+                        List of protected headers to store for update_key action and cose codec (optional). Format: FOO=BAR ABC=XYZ
+  --cose-uh COSE_UH [COSE_UH ...], -cuh COSE_UH [COSE_UH ...]
+                        List of unprotected headers to store for update_key action and cose codec (optional). Format: FOO=BAR ABC=XYZ
 ```
 
 ## Examples
@@ -121,10 +121,37 @@ optional arguments:
 ### Update Keys with COSE encoding and encrypting
 
 ```
-./dataplayer datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "update_key" -k "encoded_key" -v "hello worrldd" -c cbor -cph a_protected_header=secret_value -cuh an_unprotected_header=public_value
+./dataplayer datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "update_key" -k "encoded_key" -v "hello worrldd" -c cose -cph a_protected_header=secret_value -cuh an_unprotected_header=public_value
 {
   "success": true,
   "tx_id": "0xaecb1953cdbdb5c2294591c0538c6315c5f2fcfe8fcebf1418680b25271943ad"
 }
 
+```
+
+### Read Keys with default HEX encoding
+```
+./dataplayer datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "read_key" -k "humanized_key" -c hex
+{
+  "success": true,
+  "value": "hello world"
+}
+
+```
+
+### Read Keys with COSE encoding and encrypting
+```
+./dataplayer datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "read_key" -k "encoded_key" -c cose
+{
+  "success": true,
+  "value": {
+    "payload": "hello worrldd",
+    "protected_headers": {
+      "a_protected_header": "secret_value"
+    },
+    "unprotected_headers": {
+      "an_unprotected_header": "public_value"
+    }
+  }
+}
 ```
