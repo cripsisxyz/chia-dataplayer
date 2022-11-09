@@ -36,7 +36,7 @@ class Serializer():
         try:
             decoded = CoseMessage.decode(message)
         except AttributeError as e:
-            logging.error(f"Cannot decode CBOR message, are you sure you are using the correct codec? Desc: {str(e)}")
+            logging.error(f"Cannot decode COSE message, are you sure you are using the correct codec? Desc: {str(e)}")
             exit(1)
 
         decoded.key = self.cose_key

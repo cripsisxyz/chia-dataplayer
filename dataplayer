@@ -11,14 +11,14 @@ def default_routine(datahandler):
     else:
         wallet_rpc.check_wallets_synced()
         if args_datastore.action == "update_key":
-            if args_datastore.codec == "cbor":
+            if args_datastore.codec == "cose":
                 logging.info(f"Updating Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
                 print(datahandler.cose_push_data(
                     store_id = args_datastore.id,
                     store_key = args_datastore.key,
                     msg_store_value = args_datastore.value,
-                    msg_protected_headers = args_datastore.cbor_ph,
-                    msg_unprotected_headers = args_datastore.cbor_uh,
+                    msg_protected_headers = args_datastore.cose_ph,
+                    msg_unprotected_headers = args_datastore.cose_uh,
                 ))
             elif args_datastore.codec == "hex":
                 logging.info(f"Updating Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
@@ -28,7 +28,7 @@ def default_routine(datahandler):
                     msg_store_value = args_datastore.value
                 ))
         elif args_datastore.action == "read_key":
-            if args_datastore.codec == "cbor":
+            if args_datastore.codec == "cose":
                 logging.info(f"Reading Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
                 print(datahandler.cose_read_data(
                     store_id = args_datastore.id,
