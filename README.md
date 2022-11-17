@@ -10,6 +10,8 @@ If you found the project useful, please consider a donation to my chia wallet :)
 
 ![walleticon](doc/xch-icon.png) `xch1vt3g694eclvcjmrj8mq83vtgrva9sw0qdz34muxrqjh5y5fzq6vq89n605` | `cripsis.xch`
 
+Presentation page: https://www.cripsis.xyz/chia-dataplayer-trabaja-con-datalayer-como-un-humano/
+
 ## Requirements
 A python3 interpreter and the pipenv library, to create and use virtual environment. 
 
@@ -169,4 +171,6 @@ optional arguments:
 }
 ```
 #### AND writing value (payload) to a file 
+```
 ./datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "read_key" -k "file_test_5" -c cose -vtf /root/chia-dataplayer/rep_BigBuckBunny.mp4
+```
