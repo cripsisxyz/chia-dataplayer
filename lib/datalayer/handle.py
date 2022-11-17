@@ -19,13 +19,16 @@ class Handler():
         rpc_changelist = [{"action":"insert", "key": self.serial.hex_encode(store_key), "value": encoded_message}]
         return(json.dumps(self.rpc_instance.datalayer_update_owned_store(store_id=store_id, change_list=rpc_changelist), sort_keys=True, indent=2))
 
-    def cose_read_data(self, store_id=str, store_key=str):
+    def cose_read_data(self, store_id=str, store_key=str, return_value_object_only=False):
         key_value = self.rpc_instance.datalayer_get_value(store_id=store_id, key=self.serial.hex_encode(message=store_key))
         if not key_value:
             exit(1)
         key_value_hex = self.serial.hex_decode(message=key_value['value'])
         key_value['value'] = self.serial.cose_decode(message=key_value_hex)
-        return(json.dumps(key_value, sort_keys=True, indent=2))
+        if return_value_object_only:
+            return(key_value['value']['payload'])
+        else:
+            return(json.dumps(key_value, sort_keys=True, indent=2))
 
     def hex_push_data(self, store_id=str, store_key=str, msg_store_value=str):
         encoded_message = self.serial.hex_encode(message=msg_store_value)
@@ -53,3 +56,13 @@ class Handler():
             keys_ascii.append(ak)
         keys["keys"] = keys_ascii
         return(json.dumps(keys, sort_keys=True, indent=2))
+
+    def read_local_file(self, filepath=str):
+        with open(filepath, mode="rb") as rawfile:
+            b64_file = self.serial.base64_bencode(message=rawfile.read())
+        return(b64_file)
+    
+    def write_local_file(self, filepath=str, filecontent=str):
+        with open(filepath, mode="wb") as rawfile:
+            rawfile.write(self.serial.base64_bdecode(filecontent))
+        return(True)
