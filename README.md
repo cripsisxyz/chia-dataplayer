@@ -83,6 +83,10 @@ optional arguments:
   --key KEY, -k KEY     Key of selection (required for read_key, update_key actions)
   --value VALUE, -v VALUE
                         Value for update_key action (optional)
+  --value-from-file VALUE_FROM_FILE, -vff VALUE_FROM_FILE
+                        Read a file from path for update_key action if specified (optional)
+  --value-to-file VALUE_TO_FILE, -vtf VALUE_TO_FILE
+                        Write value to a file path for read_key action if specified specified (optional)
   --cose-ph COSE_PH [COSE_PH ...], -cph COSE_PH [COSE_PH ...]
                         List of protected headers to store for update_key action and cose codec (optional). Format: FOO=BAR ABC=XYZ
   --cose-uh COSE_UH [COSE_UH ...], -cuh COSE_UH [COSE_UH ...]
@@ -129,6 +133,15 @@ optional arguments:
 
 ```
 
+#### AND reading value from a file
+```
+./dataplayer datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "update_key" -k "file_test_5" -vff /root/chia-dataplayer/BigBuckBunny.mp4 -c cose -cph a_protected_header=secret_value -cuh an_unprotected_header=public_value
+{
+  "success": true,
+  "tx_id": "0x0efede57f3da33c86a0a5e1b823d655db4411d109c74f327079e369791671010"
+}
+```
+
 ### Read Keys with default HEX encoding
 ```
 ./dataplayer datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "read_key" -k "humanized_key" -c hex
@@ -155,3 +168,5 @@ optional arguments:
   }
 }
 ```
+#### AND writing value (payload) to a file 
+./datastore --id="2530caa7911d0c7c3b93f53927f0fd5bf18b82ac290f4476e26e5b3c32e8526c" -a "read_key" -k "file_test_5" -c cose -vtf /root/chia-dataplayer/rep_BigBuckBunny.mp4

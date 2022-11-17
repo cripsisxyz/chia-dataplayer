@@ -1,4 +1,4 @@
-import logging
+import logging, base64
 from binascii import unhexlify, hexlify
 from cose.messages import Mac0Message, CoseMessage
 from cose.keys import CoseKey
@@ -56,3 +56,9 @@ class Serializer():
     
     def hex_decode(self, message):
         return(unhexlify(message).decode())
+    
+    def base64_bencode(self, message):
+        return(base64.b64encode(message).decode('ascii'))
+    
+    def base64_bdecode(self, message):
+        return(base64.b64decode(message))

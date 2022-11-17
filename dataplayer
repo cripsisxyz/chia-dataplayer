@@ -2,7 +2,6 @@
 import logging
 from lib.cli.cli import Cli
 from lib.rpc.xchrpc import RemoteProcedureCall
-from lib.dealermath.dealermath import DealerMath
 from lib.datalayer.handle import Handler
 
 def default_routine(datahandler):
@@ -11,6 +10,8 @@ def default_routine(datahandler):
     else:
         wallet_rpc.check_wallets_synced()
         if args_datastore.action == "update_key":
+            if args_datastore.value_from_file is not None:
+                args_datastore.value = datahandler.read_local_file(filepath=args_datastore.value_from_file)
             if args_datastore.codec == "cose":
                 logging.info(f"Updating Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
                 print(datahandler.cose_push_data(
@@ -30,10 +31,13 @@ def default_routine(datahandler):
         elif args_datastore.action == "read_key":
             if args_datastore.codec == "cose":
                 logging.info(f"Reading Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
-                print(datahandler.cose_read_data(
-                    store_id = args_datastore.id,
-                    store_key = args_datastore.key
-                ))
+                if args_datastore.value_to_file is not None:
+                    args_datastore.value = datahandler.write_local_file(filepath=args_datastore.value_to_file, filecontent=datahandler.cose_read_data(store_id=args_datastore.id, store_key=args_datastore.key, return_value_object_only=True))
+                else:
+                    print(datahandler.cose_read_data(
+                        store_id = args_datastore.id,
+                        store_key = args_datastore.key
+                    ))
             elif args_datastore.codec == "hex":
                 logging.info(f"Reading Key: {args_datastore.key} for Store: {args_datastore.id} and Codec: {args_datastore.codec}")
                 print(datahandler.hex_read_data(

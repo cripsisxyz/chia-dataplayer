@@ -34,6 +34,8 @@ class Cli():
         datastores.add_argument('--action', '-a', type=str, help='Action to execute over datastore (required)', choices=['update_key', 'read_key', 'list_keys'], required=True)
         datastores.add_argument('--key', '-k', type=str, help='Key of selection (required for read_key, update_key actions)', required=False)
         datastores.add_argument('--value', '-v', type=str, help='Value for update_key action (optional)', required=False)
+        datastores.add_argument('--value-from-file', '-vff', type=str, help='Read a file from path for update_key action if specified (optional)', required=False)
+        datastores.add_argument('--value-to-file', '-vtf', type=str, help='Write value to a file path for read_key action if specified specified (optional)', required=False)
         datastores.add_argument('--cose-ph', '-cph', type=str, help='List of protected headers to store for update_key action and cose codec (optional). Format: FOO=BAR ABC=XYZ', nargs='+', required=False)
         datastores.add_argument('--cose-uh', '-cuh', type=str, help='List of unprotected headers to store for update_key action and cose codec (optional). Format: FOO=BAR ABC=XYZ', nargs='+', required=False)
         
@@ -46,10 +48,10 @@ class Cli():
             sys.exit(0)
             
         if args_datastores.action == "update_key":
-            if args_datastores.key is None or args_datastores.value is None:
+            if args_datastores.key is None or (args_datastores.value is None and args_datastores.value_from_file is None):
                 logging.error("Key or value not specified for update_key action")
                 exit(1)
-
+                  
             if args_datastores.codec == "cose":
                 if args_datastores.cose_ph is not None:
                     try:
