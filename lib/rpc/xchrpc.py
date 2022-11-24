@@ -5,13 +5,14 @@ from lib.dealermath.dealermath import DealerMath
 
 class RemoteProcedureCall():
 
-    def __init__(self, host="localhost", port=9256, private_wallet_cert_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.crt", private_wallet_key_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.key"):
+    def __init__(self, host="127.0.0.1", port=9256, private_wallet_cert_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.crt", private_wallet_key_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.key", network_fee=1000):
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         self.default_rpc_headers = {'Content-Type': 'application/json'}
         self.default_wallet_certs = (expanduser(private_wallet_cert_path), expanduser(private_wallet_key_path))
         self.host = host
         self.port = port
+        self.network_fee = network_fee
 
         logging.debug(f"RPC connector set to {self.host}:{str(self.port)} using certs {str(self.default_wallet_certs)}")
 
@@ -93,7 +94,8 @@ class RemoteProcedureCall():
         
         request_data = {
             "id": str(store_id),
-            "changelist": list(change_list)
+            "changelist": list(change_list),
+            "fee": int(self.network_fee)
         }
                
         try:
@@ -132,6 +134,31 @@ class RemoteProcedureCall():
                 return(loaded_json)
             else:
                 logging.error(f"Cannot found Key. Desc: {str(loaded_json)}")
+            return(False)
+        
+    def datalayer_delete_key(self, store_id=str, key=str):
+        logging.debug(f"Deleting Key: {key} for Store: {store_id}")
+        
+        request_data = {
+            "id": str(store_id),
+            "key": str(key),
+            "fee": int(self.network_fee)
+        }
+        
+        try:
+            response = requests.post(f"https://{self.host}:{str(self.port)}/delete_key", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
+            response.raise_for_status()
+        except Exception as e:
+            logging.error(str(e))
+            return(False)
+        else:
+            loaded_json = json.loads(response.text)
+            print(loaded_json)
+            if loaded_json["success"]:
+                logging.info("Succesfull")
+                return(loaded_json)
+            else:
+                logging.error(f"Cannot delete key. Desc: {str(loaded_json)}")
             return(False)
         
     def datalayer_get_keys(self, store_id=str):

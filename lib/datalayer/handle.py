@@ -5,7 +5,7 @@ class Handler():
     
     def __init__(self, rpc_datalayer_instance):
         if os.getenv('COSE_KEY') is None:
-            logging.warning("COSE_KEY environment variable not defined, USING A DEFAULT KEY for hex encodings")
+            logging.warning("COSE_KEY environment variable not defined, USING A DEFAULT KEY for COSE ciphering")
             cose_key = "03d4f7f0611f28563a318c64f8b0852b"
         else:
             logging.info("COSE_KEY environment variable defined, using it")
@@ -56,6 +56,9 @@ class Handler():
             keys_ascii.append(ak)
         keys["keys"] = keys_ascii
         return(json.dumps(keys, sort_keys=True, indent=2))
+
+    def datastore_delete_key(self, store_id=str, store_key=str):
+        return(json.dumps(self.rpc_instance.datalayer_delete_key(store_id=store_id, key=self.serial.hex_encode(message=store_key)), sort_keys=True, indent=2))
 
     def read_local_file(self, filepath=str):
         with open(filepath, mode="rb") as rawfile:

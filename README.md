@@ -72,17 +72,17 @@ If you want to store or read your encrypted data, you need to set the correct HM
 ## Arguments
 
 ```bash
-usage: dataplayer datastore [-h] --id ID [--codec {hex,cose}] --action {update_key,read_key,list_keys} [--key KEY] [--value VALUE]
-                            [--cose-ph COSE_PH [COSE_PH ...]] [--cose-uh COSE_UH [COSE_UH ...]]
+usage: dataplayer datastore [-h] --id ID [--codec {hex,cose}] --action {update_key,read_key,list_keys,delete_key} [--key KEY] [--value VALUE]
+                            [--value-from-file VALUE_FROM_FILE] [--value-to-file VALUE_TO_FILE] [--cose-ph COSE_PH [COSE_PH ...]] [--cose-uh COSE_UH [COSE_UH ...]]
 
 optional arguments:
   -h, --help            show this help message and exit
   --id ID, -i ID        Datastore ID
   --codec {hex,cose}, -c {hex,cose}
                         Encoding type for reading or updating (default hex)
-  --action {update_key,read_key,list_keys}, -a {update_key,read_key,list_keys}
+  --action {update_key,read_key,list_keys,delete_key}, -a {update_key,read_key,list_keys,delete_key}
                         Action to execute over datastore (required)
-  --key KEY, -k KEY     Key of selection (required for read_key, update_key actions)
+  --key KEY, -k KEY     Key of selection (required for read_key, update_key, delete_key actions)
   --value VALUE, -v VALUE
                         Value for update_key action (optional)
   --value-from-file VALUE_FROM_FILE, -vff VALUE_FROM_FILE
