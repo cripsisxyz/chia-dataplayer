@@ -45,10 +45,16 @@ def default_routine(datahandler):
                     store_key = args_datastore.key
                 ))
         elif args_datastore.action == "list_keys":
-            logging.info(f"Listing Keys: {args_datastore.key} for Store: {args_datastore.id}")
+            logging.info(f"Listing Keys for Store: {args_datastore.id}")
             print(datahandler.datastore_list_keys(
                 store_id = args_datastore.id
-            ))                
+            ))   
+        elif args_datastore.action == "delete_key":
+            logging.info(f"Deleting key: {args_datastore.key} for Store: {args_datastore.id}")
+            print(datahandler.datastore_delete_key(
+                store_id = args_datastore.id,
+                store_key = args_datastore.key
+            ))             
 
 def check_only_routine():
     wallet_rpc.check_available_wallets()
@@ -68,13 +74,15 @@ if __name__ == "__main__":
         host=config["rpc_connector"]["host"], 
         port=int(config["rpc_connector"]["service_ports"]["wallet"]), 
         private_wallet_cert_path=config["rpc_connector"]["private_wallet_cert_path"], 
-        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"])
+        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"],
+        network_fee=config["rpc_connector"]["default_network_fee"])
 
     datalayer_rpc = RemoteProcedureCall(
         host=config["rpc_connector"]["host"], 
         port=int(config["rpc_connector"]["service_ports"]["datalayer"]), 
         private_wallet_cert_path=config["rpc_connector"]["private_wallet_cert_path"], 
-        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"])
+        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"],
+        network_fee=config["rpc_connector"]["default_network_fee"])
 
     datahandler = Handler(datalayer_rpc)
     

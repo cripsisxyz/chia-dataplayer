@@ -1,4 +1,4 @@
-import logging, base64
+import logging, base64, sys, hashlib
 from binascii import unhexlify, hexlify
 from cose.messages import Mac0Message, CoseMessage
 from cose.keys import CoseKey
@@ -7,6 +7,7 @@ from cose.headers import Algorithm, KID
 from cose.keys.keyparam import KpKty, SymKpK, KpKeyOps
 from cose.keys.keytype import KtySymmetric
 from cose.keys.keyops import MacCreateOp, MacVerifyOp
+from datetime import datetime,timezone
 
 class Serializer():
 
@@ -19,10 +20,11 @@ class Serializer():
         })
 
     def cose_encode(self, message, protected_headers={}, unprotected_headers={}):
+        message_utf8 = message.encode('utf-8')
         msg = Mac0Message(
             phdr = {Algorithm: HMAC256, **protected_headers},
-            uhdr = {**unprotected_headers},
-            payload = message.encode('utf-8')
+            uhdr = {**unprotected_headers, ".props": {"size.bytes": sys.getsizeof(message), "checksum.md5": hashlib.md5(message_utf8).hexdigest(), "modified.iso8601.utc": datetime.now(timezone.utc).isoformat()}},
+            payload = message_utf8
             )
       
         msg.key = self.cose_key
@@ -43,11 +45,13 @@ class Serializer():
 
         if decoded.verify_tag():
             ph = decoded.phdr
+            uh = decoded.uhdr
             for k, v in ph.items():
                 if "abc.ABCMeta" in str(type(k)):
                     del ph[k]
                     break
-            return({"payload": str(decoded.payload.decode('ascii')), "protected_headers": ph, "unprotected_headers": decoded.uhdr})
+            #return({"payload": str(decoded.payload.decode('ascii')), "protected_headers": ph, "unprotected_headers": uh})
+            return({"protected_headers": ph, "unprotected_headers": uh})
         else:
             pass
             

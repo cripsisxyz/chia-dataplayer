@@ -1,6 +1,6 @@
 ---
 rpc_connector:
-  host: "localhost"
+  host: "127.0.0.1"
   private_wallet_cert_path: "~/.chia/mainnet/config/ssl/wallet/private_wallet.crt"
   private_wallet_key_path: "~/.chia/mainnet/config/ssl/wallet/private_wallet.key"
   service_ports: 
@@ -9,5 +9,6 @@ rpc_connector:
   service_wallets: 
     chia: 1
     datalayer: 2
+  default_network_fee: 1000 
 
 log_level: "WARNING"
