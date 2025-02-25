@@ -1,184 +1,108 @@
-import logging, requests, json
+import logging
+import requests
+import json
 from os.path import expanduser
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from lib.dealermath.dealermath import DealerMath
 
-class RemoteProcedureCall():
-
-    def __init__(self, host="127.0.0.1", port=9256, private_wallet_cert_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.crt", private_wallet_key_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.key", network_fee=1000):
+class RemoteProcedureCall:
+    def __init__(self, host="127.0.0.1", port=9256,
+                 private_wallet_cert_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.crt",
+                 private_wallet_key_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.key",
+                 network_fee=1000):
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-        self.default_rpc_headers = {'Content-Type': 'application/json'}
-        self.default_wallet_certs = (expanduser(private_wallet_cert_path), expanduser(private_wallet_key_path))
         self.host = host
         self.port = port
         self.network_fee = network_fee
+        self.default_rpc_headers = {'Content-Type': 'application/json'}
+        self.default_wallet_certs = (expanduser(private_wallet_cert_path), expanduser(private_wallet_key_path))
 
-        logging.debug(f"RPC connector set to {self.host}:{str(self.port)} using certs {str(self.default_wallet_certs)}")
+        logging.debug(f"RPC connector set to {self.host}:{self.port} using certs {self.default_wallet_certs}")
+
+    def _send_request(self, endpoint, request_data):
+        url = f"https://{self.host}:{self.port}/{endpoint}"
+        try:
+            response = requests.post(url, headers=self.default_rpc_headers, json=request_data,
+                                     cert=self.default_wallet_certs, verify=False)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logging.error(f"RPC request to {endpoint} failed: {e}")
+            return None
 
     def check_available_wallets(self):
-        logging.debug('Checking available RPC chia wallets')
-
-        request_data = {"wallet_id": "*"}
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/get_wallets", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(f"Cannot get available RPC chia wallets {str(e)}")
-            return(False)
-        else:
-            available_wallets = json.loads(response.text)['wallets']
-            logging.debug(f"Connection with chia RPC protocol sucessfull")
-            logging.info(f"Available wallets: {available_wallets}")
-            return(available_wallets)
+        logging.debug("Checking available RPC Chia wallets")
+        response = self._send_request("get_wallets", {"wallet_id": "*"})
+        if response:
+            wallets = response.get('wallets', [])
+            logging.info(f"Available wallets: {wallets}")
+            return wallets
+        return []
 
     def check_wallets_synced(self):
-        logging.debug(f"Checking chia wallets synced")
+        logging.debug("Checking Chia wallets sync status")
+        response = self._send_request("get_sync_status", {})
+        if response:
+            if response.get("syncing"):
+                logging.info("Wallets are syncing with network")
+            if response.get("synced"):
+                logging.debug("Wallets are correctly synced with network")
+                return True
+            logging.warning("Wallets are NOT synced with network")
+        return False
 
-        request_data = {}
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/get_sync_status", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(f"Cannot get RPC chia wallets sync status {str(e)}")
-            return(False)
-        else:
-            loaded_json = json.loads(response.text)
-            if loaded_json["syncing"]:
-                logging.info(f"Wallets are syncing with network")
-
-            if loaded_json["synced"]:
-                logging.debug(f"Wallets are correctly synced with network")
-            else:
-                logging.warning(f"Wallets are NOT synced with network")
-                return(False)
-
-    def check_wallet_balance(self, wallet_id=int):
-        logging.debug(f"Checking XCH balance on wallet id {str(wallet_id)}")
-
-        request_data = {"wallet_id": wallet_id}
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/get_wallet_balance", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(f"Cannot get available RPC chia wallets {str(e)}")
-            return(False)
-        else:
-            max_send_amount_mojo = int(json.loads(response.text)["wallet_balance"]["max_send_amount"])
-            max_send_amount_xch_str = DealerMath.mojo_to_xch_str(max_send_amount_mojo)
-            logging.info(f"Available balance (max_send_amount): {str(max_send_amount_mojo)} MOJOs == {str(max_send_amount_xch_str)} XCH")
-
-            return(max_send_amount_mojo, max_send_amount_xch_str)
+    def check_wallet_balance(self, wallet_id):
+        logging.debug(f"Checking XCH balance for wallet ID {wallet_id}")
+        response = self._send_request("get_wallet_balance", {"wallet_id": wallet_id})
+        if response:
+            max_mojo = response.get("wallet_balance", {}).get("max_send_amount", 0)
+            max_xch = DealerMath.mojo_to_xch_str(max_mojo)
+            logging.info(f"Available balance: {max_mojo} MOJOs == {max_xch} XCH")
+            return max_mojo, max_xch
+        return 0, "0"
 
     def datalayer_get_owned_stores(self):
-        logging.debug(f"Getting owned stores")
-        
-        request_data = {}
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/get_owned_stores", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(str(e))
-            return(False)
-        else:
-            loaded_json = json.loads(response.text)
-            if loaded_json["success"]:
-                logging.info(f"Owned data stores: {loaded_json}")
-                return(True)
-            else:
-                logging.error(f"Cannot found owned data stores {str(response.body)}")
-            return(False)
+        logging.debug("Getting owned stores")
+        response = self._send_request("get_owned_stores", {})
+        if response and response.get("success"):
+            logging.info(f"Owned data stores: {response}")
+            return response
+        logging.error("Failed to fetch owned stores")
+        return None
 
-    def datalayer_update_owned_store(self, store_id=str, change_list=list):
+    def datalayer_update_owned_store(self, store_id, change_list):
         logging.info(f"Updating Store: {store_id}")
-        
-        request_data = {
-            "id": str(store_id),
-            "changelist": list(change_list),
-            "fee": int(self.network_fee)
-        }
-               
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/batch_update", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(str(e))
-            return(False)
-        else:
-            loaded_json = json.loads(response.text)
-            if loaded_json["success"]:
-                logging.info("Succesfull")
-                return(loaded_json)
-            else:
-                logging.error(f"Cannot update Store: {str(response.text)}")
-            return(False)
-        
-    def datalayer_get_value(self, store_id=str, key=str):
-        logging.debug(f"Getting Key: {key} for Store: {store_id}")
-        
-        request_data = {
-            "id": str(store_id),
-            "key": str(key)
-        }
-        
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/get_value", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(str(e))
-            return(False)
-        else:
-            loaded_json = json.loads(response.text)
-            if loaded_json["success"]:
-                logging.info("Succesfull")
-                return(loaded_json)
-            else:
-                logging.error(f"Cannot found Key. Desc: {str(loaded_json)}")
-            return(False)
-        
-    def datalayer_delete_key(self, store_id=str, key=str):
-        logging.debug(f"Deleting Key: {key} for Store: {store_id}")
-        
-        request_data = {
-            "id": str(store_id),
-            "key": str(key),
-            "fee": int(self.network_fee)
-        }
-        
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/delete_key", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(str(e))
-            return(False)
-        else:
-            loaded_json = json.loads(response.text)
-            print(loaded_json)
-            if loaded_json["success"]:
-                logging.info("Succesfull")
-                return(loaded_json)
-            else:
-                logging.error(f"Cannot delete key. Desc: {str(loaded_json)}")
-            return(False)
-        
-    def datalayer_get_keys(self, store_id=str):
-        logging.debug(f"Listing Keys for Store: {store_id}")
-        
-        request_data = {
-            "id": str(store_id)
-        }
-        
-        try:
-            response = requests.post(f"https://{self.host}:{str(self.port)}/get_keys", headers=self.default_rpc_headers, json=request_data, cert=self.default_wallet_certs, verify=False)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(str(e))
-            return(False)
-        else:
-            loaded_json = json.loads(response.text)
-            if loaded_json["success"]:
-                logging.info("Succesfull")
-                return(loaded_json)
-            else:
-                logging.error(f"Cannot list keys. Desc: {str(loaded_json)}")
-            return(False)
+        response = self._send_request("batch_update", {"id": store_id, "changelist": change_list, "fee": self.network_fee})
+        if response and response.get("success"):
+            logging.info("Update successful")
+            return response
+        logging.error(f"Failed to update store: {store_id}")
+        return None
+
+    def datalayer_get_value(self, store_id, key):
+        logging.debug(f"Fetching Key: {key} for Store: {store_id}")
+        response = self._send_request("get_value", {"id": store_id, "key": key})
+        if response and response.get("success"):
+            logging.info("Fetch successful")
+            return response
+        logging.error(f"Failed to fetch key: {key}")
+        return None
+
+    def datalayer_delete_key(self, store_id, key):
+        logging.debug(f"Deleting Key: {key} from Store: {store_id}")
+        response = self._send_request("delete_key", {"id": store_id, "key": key, "fee": self.network_fee})
+        if response and response.get("success"):
+            logging.info("Deletion successful")
+            return response
+        logging.error(f"Failed to delete key: {key}")
+        return None
+
+    def datalayer_get_keys(self, store_id):
+        logging.debug(f"Listing keys for Store: {store_id}")
+        response = self._send_request("get_keys", {"id": store_id})
+        if response and response.get("success"):
+            logging.info("Fetch successful")
+            return response
+        logging.error(f"Failed to list keys for store: {store_id}")
+        return None

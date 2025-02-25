@@ -1,0 +1,99 @@
+from fastapi import FastAPI, HTTPException
+import logging
+import yaml
+from lib.rpc.xchrpc import RemoteProcedureCall
+from lib.datalayer.handle import Handler
+
+app = FastAPI()
+
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+logging.basicConfig(level=config.get("log_level", "INFO"))
+
+try:
+    wallet_rpc = RemoteProcedureCall(
+        host=config["rpc_connector"]["host"],
+        port=int(config["rpc_connector"]["service_ports"]["wallet"]),
+        private_wallet_cert_path=config["rpc_connector"]["private_wallet_cert_path"],
+        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"],
+        network_fee=config["rpc_connector"]["default_network_fee"]
+    )
+
+    datalayer_rpc = RemoteProcedureCall(
+        host=config["rpc_connector"]["host"],
+        port=int(config["rpc_connector"]["service_ports"]["datalayer"]),
+        private_wallet_cert_path=config["rpc_connector"]["private_wallet_cert_path"],
+        private_wallet_key_path=config["rpc_connector"]["private_wallet_key_path"],
+        network_fee=config["rpc_connector"]["default_network_fee"]
+    )
+
+    datahandler = Handler(datalayer_rpc)
+except Exception as e:
+    logging.error(f"Failed to initialize RPC connections: {e}")
+    raise
+
+@app.get("/check")
+def check_status():
+    try:
+        result1 = wallet_rpc.check_available_wallets()
+        result2 = wallet_rpc.check_wallets_synced()
+        result3 = wallet_rpc.check_wallet_balance(wallet_id=config["rpc_connector"]["service_wallets"]["chia"])
+        result4 = datalayer_rpc.datalayer_get_owned_stores()
+
+        results = [result1, result2, result3, result4]
+
+        if any("ERROR" in str(res) for res in results):
+            raise ValueError("One or more checks returned an error")
+
+    except Exception as e:
+        logging.error(f"Error during check: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"status": "Check completed successfully"}
+
+@app.post("/datastore/update_key")
+def update_key(store_id: str, key: str, value: str, codec: str, cose_ph: str = None, cose_uh: str = None):
+    try:
+        if codec == "cose":
+            return datahandler.cose_push_data(store_id, key, value, cose_ph, cose_uh)
+        elif codec == "hex":
+            return datahandler.hex_push_data(store_id, key, value)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid codec")
+    except Exception as e:
+        logging.error(f"Error updating key: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/datastore/read_key")
+def read_key(store_id: str, key: str, codec: str):
+    try:
+        if codec == "cose":
+            return datahandler.cose_read_data(store_id, key)
+        elif codec == "hex":
+            return datahandler.hex_read_data(store_id, key)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid codec")
+    except Exception as e:
+        logging.error(f"Error reading key: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/datastore/list_keys")
+def list_keys(store_id: str):
+    try:
+        return datahandler.datastore_list_keys(store_id)
+    except Exception as e:
+        logging.error(f"Error listing keys: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/datastore/delete_key")
+def delete_key(store_id: str, key: str):
+    try:
+        return datahandler.datastore_delete_key(store_id, key)
+    except Exception as e:
+        logging.error(f"Error deleting key: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
