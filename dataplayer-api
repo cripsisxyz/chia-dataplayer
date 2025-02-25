@@ -50,7 +50,7 @@ def check_status():
         logging.error(f"Error during check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"status": "Check completed successfully"}
+    return {"status": "OK - Check completed successfully"}
 
 @app.post("/datastore/update_key")
 def update_key(store_id: str, key: str, value: str, codec: str, cose_ph: str = None, cose_uh: str = None):
