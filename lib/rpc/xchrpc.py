@@ -33,9 +33,19 @@ class RemoteProcedureCall:
                                      cert=self.default_wallet_certs, verify=False)
             response.raise_for_status()
             return response.json()
-        except requests.RequestException as e:
-            logging.error(f"RPC request to {endpoint} failed: {e}")
-            return None
+        except requests.exceptions.HTTPError as http_err:
+            logging.error(f"HTTP error occurred: {http_err}")
+            return {"error": f"HTTP error: {http_err}"}
+        except requests.exceptions.ConnectionError as conn_err:
+            logging.error(f"Connection error occurred: {conn_err}")
+            return {"error": f"Connection error: {conn_err}"}
+        except requests.exceptions.Timeout as timeout_err:
+            logging.error(f"Timeout error occurred: {timeout_err}")
+            return {"error": f"Timeout error: {timeout_err}"}
+        except requests.exceptions.RequestException as req_err:
+            logging.error(f"An error occurred: {req_err}")
+            return {"error": f"Request error: {req_err}"}
+
 
     def check_available_wallets(self):
         """
@@ -43,11 +53,11 @@ class RemoteProcedureCall:
         """
         logging.debug("Checking available RPC Chia wallets")
         response = self._send_request("get_wallets", {"wallet_id": "*"})
-        if response:
+        if response and "error" not in response:
             wallets = response.get('wallets', [])
             logging.info(f"Available wallets: {wallets}")
             return wallets
-        return []
+        return {"error": "Failed to fetch wallets"}
 
     def check_wallets_synced(self):
         """
@@ -55,14 +65,14 @@ class RemoteProcedureCall:
         """
         logging.debug("Checking Chia wallets sync status")
         response = self._send_request("get_sync_status", {})
-        if response:
+        if response and "error" not in response:
             if response.get("syncing"):
                 logging.info("Wallets are syncing with network")
             if response.get("synced"):
                 logging.debug("Wallets are correctly synced with network")
                 return True
             logging.warning("Wallets are NOT synced with network")
-        return False
+        return {"error": "Failed to check sync status"}
 
     def check_wallet_balance(self, wallet_id):
         """
@@ -70,12 +80,12 @@ class RemoteProcedureCall:
         """
         logging.debug(f"Checking XCH balance for wallet ID {wallet_id}")
         response = self._send_request("get_wallet_balance", {"wallet_id": wallet_id})
-        if response:
+        if response and "error" not in response:
             max_mojo = response.get("wallet_balance", {}).get("max_send_amount", 0)
             max_xch = DealerMath.mojo_to_xch_str(max_mojo)
             logging.info(f"Available balance: {max_mojo} MOJOs == {max_xch} XCH")
             return max_mojo, max_xch
-        return 0, "0"
+        return {"error": "Failed to fetch wallet balance"}
 
     def datalayer_get_owned_stores(self):
         """
@@ -83,11 +93,11 @@ class RemoteProcedureCall:
         """
         logging.debug("Getting owned stores")
         response = self._send_request("get_owned_stores", {})
-        if response and response.get("success"):
+        if response and "error" not in response and response.get("success"):
             logging.info(f"Owned data stores: {response}")
             return response
         logging.error("Failed to fetch owned stores")
-        return None
+        return {"error": "Failed to fetch owned stores"}
 
     def datalayer_update_owned_store(self, store_id, change_list):
         """

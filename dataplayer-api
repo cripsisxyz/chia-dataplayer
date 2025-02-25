@@ -43,11 +43,16 @@ def check_status():
 
         results = [result1, result2, result3, result4]
 
-        if any("ERROR" in str(res) for res in results):
-            raise ValueError("One or more checks returned an error")
+        # Verificar si alguno de los resultados contiene un error
+        if any("error" in str(res) for res in results):
+            error_messages = [res.get("error", "Unknown error") if isinstance(res, dict) else str(res) for res in results]
+            raise ValueError(f"One or more checks returned an error: {error_messages}")
 
+    except ValueError as ve:
+        logging.error(f"ValueError during check: {ve}")
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        logging.error(f"Error during check: {e}")
+        logging.error(f"Unexpected error during check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"status": "OK - Check completed successfully"}
