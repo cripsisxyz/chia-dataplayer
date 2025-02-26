@@ -104,10 +104,18 @@ class RemoteProcedureCall:
         Update an existing store in Chia Data Layer.
         """
         logging.info(f"Updating Store: {store_id}")
+
+        # DEBUG: Imprime lo que envías y lo que recibes
+        logging.debug(f"Sending request with store_id: {store_id}, change_list: {change_list}")
+
         response = self._send_request("batch_update", {"id": store_id, "changelist": change_list, "fee": self.network_fee})
+
+        logging.debug(f"Response from _send_request: {response}")  # <-- DEBUG
+
         if response and response.get("success"):
             logging.info("Update successful")
             return response
+
         logging.error(f"Failed to update store: {store_id}")
         return None
 
