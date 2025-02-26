@@ -13,7 +13,7 @@ with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 Cli.set_app_logger(config.get("log_level", "DEBUG"))
-logging = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 try:
     wallet_rpc = RemoteProcedureCall(
@@ -34,7 +34,7 @@ try:
 
     datahandler = Handler(datalayer_rpc)
 except Exception as e:
-    logging.error(f"Failed to initialize RPC connections: {e}")
+    logger.error(f"Failed to initialize RPC connections: {e}")
     raise
 
 class UpdateKeyRequest(BaseModel):
@@ -61,10 +61,10 @@ def check_status():
             raise ValueError(f"One or more checks returned an error: {error_messages}")
 
     except ValueError as ve:
-        logging.error(f"ValueError during check: {ve}")
+        logger.error(f"ValueError during check: {ve}")
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        logging.error(f"Unexpected error during check: {e}")
+        logger.error(f"Unexpected error during check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"status": "OK - all the checks are completed successfully!"}
@@ -80,7 +80,7 @@ def update_key(request: UpdateKeyRequest):
         else:
             raise HTTPException(status_code=400, detail="Invalid codec")
     except Exception as e:
-        logging.error(f"Error updating key: {e}")
+        logger.error(f"Error updating key: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/datastore/key/read")
@@ -93,7 +93,7 @@ def read_key(store_id: str, key: str, codec: str):
         else:
             raise HTTPException(status_code=400, detail="Invalid codec")
     except Exception as e:
-        logging.error(f"Error reading key: {e}")
+        logger.error(f"Error reading key: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/datastore/key/list")
@@ -101,7 +101,7 @@ def list_keys(store_id: str):
     try:
         return datahandler.datastore_list_keys(store_id)
     except Exception as e:
-        logging.error(f"Error listing keys: {e}")
+        logger.error(f"Error listing keys: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/datastore/key/delete")
@@ -109,7 +109,7 @@ def delete_key(store_id: str, key: str):
     try:
         return datahandler.datastore_delete_key(store_id, key)
     except Exception as e:
-        logging.error(f"Error deleting key: {e}")
+        logger.error(f"Error deleting key: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/datastore/list")
@@ -117,7 +117,7 @@ def get_datastore_info():
     try:
         return datalayer_rpc.datalayer_get_owned_stores()
     except Exception as e:
-        logging.error(f"Error retrieving datastore info: {e}")
+        logger.error(f"Error retrieving datastore info: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/datastore/create")
@@ -125,7 +125,7 @@ def get_datastore_info():
     try:
         return datalayer_rpc.create_data_store()
     except Exception as e:
-        logging.error(f"Error retrieving datastore info: {e}")
+        logger.error(f"Error retrieving datastore info: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
