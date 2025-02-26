@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import logging
 import yaml
+from lib.cli.cli import Cli
 from lib.rpc.xchrpc import RemoteProcedureCall
 from lib.datalayer.handle import Handler
 from pydantic import BaseModel
