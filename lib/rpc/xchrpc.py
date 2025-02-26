@@ -28,6 +28,7 @@ class RemoteProcedureCall:
         Send a request to the Chia RPC endpoint.
         """
         url = f"https://{self.host}:{self.port}/{endpoint}"
+        logging.debug(f"Response from _send_request: {response}")  # <-- DEBUG
         try:
             response = requests.post(url, headers=self.default_rpc_headers, json=request_data,
                                      cert=self.default_wallet_certs, verify=False)
