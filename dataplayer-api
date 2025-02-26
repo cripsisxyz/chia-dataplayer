@@ -39,8 +39,8 @@ class UpdateKeyRequest(BaseModel):
     key: str
     value: str
     codec: str
-    cose_ph: str | None = None
-    cose_uh: str | None = None
+    cose_ph: Optional[str] = None
+    cose_uh: Optional[str] = None
 
 @app.get("/check")
 def check_status():
