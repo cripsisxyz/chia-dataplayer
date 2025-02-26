@@ -106,18 +106,17 @@ class RemoteProcedureCall:
         """
         logging.info(f"Updating Store: {store_id}")
 
-        # DEBUG: Imprime lo que envías y lo que recibes
-        logging.debug(f"Sending request with store_id: {store_id}, change_list: {change_list}")
+        response = None
 
-        response = self._send_request("batch_update", {"id": store_id, "changelist": change_list, "fee": self.network_fee})
+        try:
+            response = self._send_request("batch_update", {"id": store_id, "changelist": change_list, "fee": self.network_fee})
+            if response and response.get("success"):
+                logging.info("Update successful")
+                return response
+            logging.error(f"Failed to update store: {store_id}, Response: {response}")
+        except Exception as e:
+            logging.error(f"Exception in datalayer_update_owned_store: {e}")
 
-        logging.debug(f"Response from _send_request: {response}")  # <-- DEBUG
-
-        if response and response.get("success"):
-            logging.info("Update successful")
-            return response
-
-        logging.error(f"Failed to update store: {store_id}")
         return None
 
     def datalayer_get_value(self, store_id, key):
