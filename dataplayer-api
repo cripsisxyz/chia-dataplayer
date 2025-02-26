@@ -107,6 +107,14 @@ def get_datastore_info():
         logging.error(f"Error retrieving datastore info: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/datastore/create")
+def get_datastore_info():
+    try:
+        return datalayer_rpc.create_data_store()
+    except Exception as e:
+        logging.error(f"Error retrieving datastore info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
