@@ -2,16 +2,15 @@ import logging, argparse, sys, yaml
 class Cli():
 
     @staticmethod
-    def set_app_logger():
+    def set_app_logger(log_level="DEBUG"):
         root = logging.getLogger()
-        root.propagate = True
-        handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(funcName)s|%(message)s')
-        for handler in root.handlers:
-            if isinstance(handler, logging.StreamHandler):
-                handler.setFormatter(formatter)
-        handler.setFormatter(formatter)
-        root.addHandler(handler)
+        root.setLevel(log_level)
+
+        if not root.handlers:  # Evita agregar múltiples handlers
+            handler = logging.StreamHandler(sys.stdout)
+            formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(funcName)s|%(message)s')
+            handler.setFormatter(formatter)
+            root.addHandler(handler)
 
     @staticmethod
     def argparse():
