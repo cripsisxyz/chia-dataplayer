@@ -4,6 +4,7 @@ import yaml
 from lib.rpc.xchrpc import RemoteProcedureCall
 from lib.datalayer.handle import Handler
 from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 
