@@ -5,6 +5,8 @@ from os.path import expanduser
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from lib.dealermath.dealermath import DealerMath
 
+logging = logging.getLogger(__name__)
+
 class RemoteProcedureCall:
     def __init__(self, host="127.0.0.1", port=9256,
                  private_wallet_cert_path="~/.chia/mainnet/config/ssl/wallet/private_wallet.crt",

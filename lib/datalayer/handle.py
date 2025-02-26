@@ -1,6 +1,8 @@
 import os, json, logging
 from lib.datalayer.serial import Serializer
 
+logging = logging.getLogger(__name__)
+
 class Handler():
 
     def __init__(self, rpc_datalayer_instance):

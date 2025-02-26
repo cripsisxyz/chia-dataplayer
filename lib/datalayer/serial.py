@@ -9,10 +9,12 @@ from cose.keys.keytype import KtySymmetric
 from cose.keys.keyops import MacCreateOp, MacVerifyOp
 from datetime import datetime,timezone
 
+logging = logging.getLogger(__name__)
+
 class Serializer():
 
     def __init__(self, cose_key=str):
-        
+
         self.cose_key = CoseKey.from_dict({
             KpKty: KtySymmetric,
             SymKpK: unhexlify(bytes(cose_key, encoding='utf-8')),
@@ -26,15 +28,15 @@ class Serializer():
             uhdr = {**unprotected_headers, ".props": {"size.bytes": sys.getsizeof(message), "checksum.md5": hashlib.md5(message_utf8).hexdigest(), "modified.iso8601.utc": datetime.now(timezone.utc).isoformat()}},
             payload = message_utf8
             )
-      
+
         msg.key = self.cose_key
         encoded = msg.encode()
-        
+
         return hexlify(encoded).hex()
 
     def cose_decode(self, message):
         message = unhexlify(message)
-        
+
         try:
             decoded = CoseMessage.decode(message)
         except AttributeError as e:
@@ -54,15 +56,15 @@ class Serializer():
             return({"protected_headers": ph, "unprotected_headers": uh})
         else:
             pass
-            
+
     def hex_encode(self, message):
         return(hexlify(message.encode()).decode())
-    
+
     def hex_decode(self, message):
         return(unhexlify(message).decode())
-    
+
     def base64_bencode(self, message):
         return(base64.b64encode(message).decode('ascii'))
-    
+
     def base64_bdecode(self, message):
         return(base64.b64decode(message))
