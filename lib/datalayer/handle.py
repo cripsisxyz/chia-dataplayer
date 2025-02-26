@@ -1,16 +1,16 @@
 import os, json, logging
 from lib.datalayer.serial import Serializer
 
-logging = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
 
 class Handler():
 
     def __init__(self, rpc_datalayer_instance):
         if os.getenv('COSE_KEY') is None:
-            logging.warning("COSE_KEY environment variable not defined, USING A DEFAULT KEY for COSE ciphering")
+            logger.warning("COSE_KEY environment variable not defined, USING A DEFAULT KEY for COSE ciphering")
             cose_key = "03d4f7f0611f28563a318c64f8b0852b"
         else:
-            logging.info("COSE_KEY environment variable defined, using it")
+            logger.info("COSE_KEY environment variable defined, using it")
             cose_key = os.getenv('COSE_KEY')
 
         self.serial = Serializer(cose_key=cose_key)

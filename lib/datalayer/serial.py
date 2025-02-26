@@ -1,4 +1,4 @@
-import logging, base64, sys, hashlib
+import logging, base64, sys, hashlib, uvicorn
 from binascii import unhexlify, hexlify
 from cose.messages import Mac0Message, CoseMessage
 from cose.keys import CoseKey
@@ -9,7 +9,7 @@ from cose.keys.keytype import KtySymmetric
 from cose.keys.keyops import MacCreateOp, MacVerifyOp
 from datetime import datetime,timezone
 
-logging = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
 
 class Serializer():
 
@@ -40,7 +40,7 @@ class Serializer():
         try:
             decoded = CoseMessage.decode(message)
         except AttributeError as e:
-            logging.error(f"Cannot decode COSE message, are you sure you are using the correct codec? Desc: {str(e)}")
+            logger.error(f"Cannot decode COSE message, are you sure you are using the correct codec? Desc: {str(e)}")
             exit(1)
 
         decoded.key = self.cose_key
