@@ -3,6 +3,7 @@ import logging
 import yaml
 from lib.rpc.xchrpc import RemoteProcedureCall
 from lib.datalayer.handle import Handler
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -33,6 +34,14 @@ except Exception as e:
     logging.error(f"Failed to initialize RPC connections: {e}")
     raise
 
+class UpdateKeyRequest(BaseModel):
+    store_id: str
+    key: str
+    value: str
+    codec: str
+    cose_ph: str | None = None
+    cose_uh: str | None = None
+
 @app.get("/check")
 def check_status():
     try:
@@ -58,12 +67,12 @@ def check_status():
     return {"status": "OK - all the checks are completed successfully!"}
 
 @app.post("/datastore/key/update")
-def update_key(store_id: str, key: str, value: str, codec: str, cose_ph: str = None, cose_uh: str = None):
+def update_key(request: UpdateKeyRequest):
     try:
-        if codec == "cose":
-            return datahandler.cose_push_data(store_id, key, value, cose_ph, cose_uh)
-        elif codec == "hex":
-            return datahandler.hex_push_data(store_id, key, value)
+        if request.codec == "cose":
+            return datahandler.cose_push_data(request.store_id, request.key, request.value, request.cose_ph, request.cose_uh)
+        elif request.codec == "hex":
+            return datahandler.hex_push_data(request.store_id, request.key, request.value)
         else:
             raise HTTPException(status_code=400, detail="Invalid codec")
     except Exception as e:
