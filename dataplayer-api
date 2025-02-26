@@ -11,7 +11,8 @@ app = FastAPI()
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
-logging.basicConfig(level=config.get("log_level", "INFO"))
+Cli.set_app_logger()
+logging.basicConfig(level=config.get("log_level", "DEBUG"))
 
 try:
     wallet_rpc = RemoteProcedureCall(
