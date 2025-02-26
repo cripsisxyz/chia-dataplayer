@@ -67,6 +67,7 @@ def check_status():
         logging.error(f"Unexpected error during check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+    logging.info("OK - all the checks are completed successfully")
     return {"status": "OK - all the checks are completed successfully!"}
 
 @app.post("/datastore/key/update")
