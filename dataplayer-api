@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException
 import logging
 import yaml
 import uvicorn
-from lib.cli.cli import Cli
 from lib.rpc.xchrpc import RemoteProcedureCall
 from lib.datalayer.handle import Handler
 from pydantic import BaseModel
@@ -131,4 +130,4 @@ def get_datastore_info():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level=config["log_level"])
