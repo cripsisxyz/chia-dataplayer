@@ -1,4 +1,6 @@
 import logging, argparse, sys, yaml
+from uvicorn.logging import DefaultFormatter
+
 class Cli():
 
     @staticmethod
@@ -8,7 +10,7 @@ class Cli():
 
         if not root.handlers:  # Evita agregar múltiples handlers
             handler = logging.StreamHandler(sys.stdout)
-            formatter = logging.Formatter('[%(levelname)s]|%(asctime)s|%(funcName)s|%(message)s')
+            formatter = DefaultFormatter()  # Usa el formatter de FastAPI/Uvicorn
             handler.setFormatter(formatter)
             root.addHandler(handler)
 
