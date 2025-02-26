@@ -57,7 +57,7 @@ def check_status():
 
     return {"status": "OK - all the checks are completed successfully!"}
 
-@app.post("/datastore/update_key")
+@app.post("/datastore/key/update")
 def update_key(store_id: str, key: str, value: str, codec: str, cose_ph: str = None, cose_uh: str = None):
     try:
         if codec == "cose":
@@ -70,7 +70,7 @@ def update_key(store_id: str, key: str, value: str, codec: str, cose_ph: str = N
         logging.error(f"Error updating key: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/datastore/read_key")
+@app.get("/datastore/key/read")
 def read_key(store_id: str, key: str, codec: str):
     try:
         if codec == "cose":
@@ -83,7 +83,7 @@ def read_key(store_id: str, key: str, codec: str):
         logging.error(f"Error reading key: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/datastore/list_keys")
+@app.get("/datastore/key/list")
 def list_keys(store_id: str):
     try:
         return datahandler.datastore_list_keys(store_id)
@@ -91,7 +91,7 @@ def list_keys(store_id: str):
         logging.error(f"Error listing keys: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/datastore/delete_key")
+@app.delete("/datastore/key/delete")
 def delete_key(store_id: str, key: str):
     try:
         return datahandler.datastore_delete_key(store_id, key)
@@ -99,10 +99,10 @@ def delete_key(store_id: str, key: str):
         logging.error(f"Error deleting key: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/datastore/info")
-def get_datastore_info(store_id: str):
+@app.get("/datastore/list")
+def get_datastore_info():
     try:
-        return datahandler.datastore_get_info(store_id)
+        return datahandler.get_owned_stores()
     except Exception as e:
         logging.error(f"Error retrieving datastore info: {e}")
         raise HTTPException(status_code=500, detail=str(e))
