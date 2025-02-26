@@ -55,7 +55,7 @@ def check_status():
         logging.error(f"Unexpected error during check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-    return {"status": "OK - Check completed successfully"}
+    return {"status": "OK - all the checks are completed successfully!"}
 
 @app.post("/datastore/update_key")
 def update_key(store_id: str, key: str, value: str, codec: str, cose_ph: str = None, cose_uh: str = None):
@@ -97,6 +97,14 @@ def delete_key(store_id: str, key: str):
         return datahandler.datastore_delete_key(store_id, key)
     except Exception as e:
         logging.error(f"Error deleting key: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/datastore/info")
+def get_datastore_info(store_id: str):
+    try:
+        return datahandler.datastore_get_info(store_id)
+    except Exception as e:
+        logging.error(f"Error retrieving datastore info: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
