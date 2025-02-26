@@ -69,6 +69,7 @@ def check_status():
 
 @app.post("/datastore/key/update")
 def update_key(request: UpdateKeyRequest):
+    print(request)
     try:
         if request.codec == "cose":
             return datahandler.cose_push_data(request.store_id, request.key, request.value, request.cose_ph, request.cose_uh)
