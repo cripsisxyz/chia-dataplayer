@@ -159,16 +159,3 @@ class RemoteProcedureCall:
             return response
         logging.error("Failed to create data store")
         return None
-
-    def get_owned_stores(self):
-        """
-        Retrieve the list of owned store IDs in Chia Data Layer.
-        """
-        logging.debug("Fetching owned store IDs")
-        response = self._send_request("get_owned_stores", {})
-        if response and response.get("success"):
-            store_ids = response.get("store_ids", [])
-            logging.info(f"Owned store IDs: {store_ids}")
-            return store_ids
-        logging.error("Failed to fetch owned store IDs")
-        return {"error": "Failed to fetch owned store IDs"}

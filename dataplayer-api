@@ -102,7 +102,7 @@ def delete_key(store_id: str, key: str):
 @app.get("/datastore/list")
 def get_datastore_info():
     try:
-        return datahandler.get_owned_stores()
+        return datahandler.datalayer_get_owned_stores()
     except Exception as e:
         logging.error(f"Error retrieving datastore info: {e}")
         raise HTTPException(status_code=500, detail=str(e))
