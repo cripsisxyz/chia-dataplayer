@@ -13,8 +13,7 @@ app = FastAPI()
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
-Cli.set_app_logger(config.get("log_level", "DEBUG"))
-uvicorn_logger = logging.getLogger("uvicorn")
+logger = logging.getLogger("uvicorn")
 
 try:
     wallet_rpc = RemoteProcedureCall(
