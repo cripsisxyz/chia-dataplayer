@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 import logging
 import yaml
+import uvicorn
 from lib.cli.cli import Cli
 from lib.rpc.xchrpc import RemoteProcedureCall
 from lib.datalayer.handle import Handler
@@ -13,7 +14,7 @@ with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 Cli.set_app_logger(config.get("log_level", "DEBUG"))
-logger = logging.getLogger(__name__)
+uvicorn_logger = logging.getLogger("uvicorn")
 
 try:
     wallet_rpc = RemoteProcedureCall(
