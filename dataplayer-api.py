@@ -8,7 +8,7 @@ from lib.datalayer.handle import Handler
 from pydantic import BaseModel
 from typing import Optional
 
-app = FastAPI()
+app = FastAPI(max_request_size=25 * 1024 * 1024)
 
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)

@@ -1,3 +1,10 @@
+# 1.0.0
+* Changed to CLI to API Rest, as is not scalable for microservices apps
+* Add Dockerfile
+* Added new methods
+* Fixed handling
+* Fixed logging
+
 # 0.3.0
 * Add delete_key action
 * Add default network fee on config.yml for operations that need fees
